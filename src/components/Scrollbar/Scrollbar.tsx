@@ -3,7 +3,8 @@ import { normalizeValue } from './Scrollbar.utils'
 import { IScrollbarProps } from './Scrollbar.types'
 import s from './Scrollbar.module.scss'
 
-const Scrollbar: FC<IScrollbarProps> = ({ children, ...divProps }) => {
+const Scrollbar: FC<IScrollbarProps> = (props) => {
+  const { style, height, children, ...divProps } = props
   const contentRef = useRef<HTMLDivElement>(null)
   const trackRef = useRef<HTMLDivElement>(null)
   const [thumbTop, setThumbTop] = useState(0)
@@ -28,16 +29,21 @@ const Scrollbar: FC<IScrollbarProps> = ({ children, ...divProps }) => {
   const mouseMoveEventListener = useCallback(
     (event: MouseEvent) => {
       if (trackRef.current && contentRef.current) {
-        const posY =
-          event.clientY - (trackRef.current.getBoundingClientRect().top + thumbHeight / 2)
+        const { top: trackTop, left: trackLeft } = trackRef.current.getBoundingClientRect()
+
+        const posY = event.clientY - (trackTop + thumbHeight / 2)
         const normalizedPosY = normalizeValue(posY, 0, trackRef.current.clientHeight - thumbHeight)
 
-        const scrollToPosY =
-          ((normalizedPosY + thumbHeight / 2) / trackRef.current.clientHeight) *
-            contentRef.current.scrollHeight -
-          contentRef.current.clientHeight / 2
+        if (Math.abs(trackLeft - event.clientX) < 160) {
+          const scrollToPosY =
+            ((normalizedPosY + thumbHeight / 2) / trackRef.current.clientHeight) *
+              contentRef.current.scrollHeight -
+            contentRef.current.clientHeight / 2
 
-        contentRef.current.scrollTo(0, scrollToPosY)
+          contentRef.current.scrollTo(0, scrollToPosY)
+        } else {
+          contentRef.current.scrollTo(0, 0)
+        }
       }
     },
     [trackRef, thumbHeight]
@@ -119,7 +125,7 @@ const Scrollbar: FC<IScrollbarProps> = ({ children, ...divProps }) => {
   }, [mouseUpEventListener])
 
   return (
-    <div {...divProps} className={s.root}>
+    <div style={{ height: `${height}px`, ...style }} className={s.root} {...divProps}>
       <div
         ref={contentRef}
         onScroll={onScrollContent}
