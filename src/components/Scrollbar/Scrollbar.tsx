@@ -4,7 +4,7 @@ import { IScrollbarProps } from './Scrollbar.types'
 import s from './Scrollbar.module.scss'
 
 const Scrollbar: FC<IScrollbarProps> = (props) => {
-  const { style, height, children, ...divProps } = props
+  const { children, ...divProps } = props
   const contentRef = useRef<HTMLDivElement>(null)
   const trackRef = useRef<HTMLDivElement>(null)
   const [thumbTop, setThumbTop] = useState(0)
@@ -125,7 +125,7 @@ const Scrollbar: FC<IScrollbarProps> = (props) => {
   }, [mouseUpEventListener])
 
   return (
-    <div style={{ height: `${height}px`, ...style }} className={s.root} {...divProps}>
+    <div className={s.root} {...divProps}>
       <div
         ref={contentRef}
         onScroll={onScrollContent}

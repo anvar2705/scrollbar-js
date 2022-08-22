@@ -5,7 +5,7 @@ import Scrollbar from '../Scrollbar/Scrollbar'
 function App() {
   return (
     <div className={s.root}>
-      <Scrollbar style={{ width: '500px' }} height={500}>
+      <Scrollbar style={{ width: '500px' }}>
         <div style={{ padding: '0 18px' }}>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
           ut labore et dolore magna aliqua. Sed viverra tellus in hac habitasse platea dictumst.
