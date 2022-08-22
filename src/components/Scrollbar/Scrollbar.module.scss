@@ -23,7 +23,7 @@
 .track {
   width: 8px;
   height: 100%;
-  background-color: #ccc;
+  background-color: transparent;
   position: absolute;
   top: 0;
   right: 0;
@@ -32,18 +32,18 @@
 }
 .thumb {
   width: 4px;
-  background-color: #999;
+  background-color: #bbb;
   border-radius: 100vw;
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
 
   &:hover {
-    background-color: #777;
-    width: 8px;
+    background-color: #999;
+    width: 6px;
   }
   &:active {
-    background-color: #555;
-    width: 8px;
+    background-color: #777;
+    width: 6px;
   }
 }
