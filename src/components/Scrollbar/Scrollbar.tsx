@@ -5,7 +5,6 @@ import s from './Scrollbar.module.scss'
 
 const Scrollbar: FC<IScrollbarProps> = ({ children, ...divProps }) => {
   const contentRef = useRef<HTMLDivElement>(null)
-  const thumbRef = useRef<HTMLDivElement>(null)
   const trackRef = useRef<HTMLDivElement>(null)
   const [thumbTop, setThumbTop] = useState(0)
   const [thumbHeight, setThumbHeight] = useState(0)
@@ -21,44 +20,28 @@ const Scrollbar: FC<IScrollbarProps> = ({ children, ...divProps }) => {
       setIsScrollVisible(false)
     } else if (contentClientHeight && contentScrollHeight && trackHeight) {
       const thumbHeightCalculated = (contentClientHeight / contentScrollHeight) * trackHeight
-      if (thumbRef.current) {
-        thumbRef.current.style.height = `${thumbHeightCalculated}px`
-        setThumbHeight(thumbHeightCalculated)
-      }
+      setThumbHeight(thumbHeightCalculated)
     }
   }, [contentRef, trackRef])
-
-  // move function
-  const moveThumbAt = useCallback((posY: number) => {
-    if (thumbRef.current) thumbRef.current.style.top = `${posY}px`
-  }, [])
 
   // mouseMove event listener
   const mouseMoveEventListener = useCallback(
     (event: MouseEvent) => {
       if (trackRef.current && contentRef.current) {
-        // move thumb
         const posY =
           event.clientY - (trackRef.current.getBoundingClientRect().top + thumbHeight / 2)
         const normalizedPosY = normalizeValue(posY, 0, trackRef.current.clientHeight - thumbHeight)
-        moveThumbAt(normalizedPosY)
 
-        //scroll content
         const scrollToPosY =
           ((normalizedPosY + thumbHeight / 2) / trackRef.current.clientHeight) *
             contentRef.current.scrollHeight -
           contentRef.current.clientHeight / 2
+
         contentRef.current.scrollTo(0, scrollToPosY)
       }
     },
-    [moveThumbAt, trackRef, thumbHeight]
+    [trackRef, thumbHeight]
   )
-
-  // mouseUp event listener
-  const mouseUpEventListener = useCallback(() => {
-    document.removeEventListener('mousemove', mouseMoveEventListener)
-    document.body.style.userSelect = 'auto'
-  }, [mouseMoveEventListener])
 
   // move scroll thumb by onScroll event
   const onScrollContent = () => {
@@ -69,9 +52,6 @@ const Scrollbar: FC<IScrollbarProps> = ({ children, ...divProps }) => {
       setThumbTop(thumbTopOffset)
     }
   }
-  useEffect(() => {
-    if (thumbRef.current) thumbRef.current.style.top = `${thumbTop}px`
-  }, [thumbTop])
 
   // mouseDown track event - scroll content if click to track
   const onMouseDownTrack = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -106,13 +86,12 @@ const Scrollbar: FC<IScrollbarProps> = ({ children, ...divProps }) => {
         event.currentTarget.getBoundingClientRect().top -
         (trackRef.current.getBoundingClientRect().top + trackBorderTopWidthValue)
 
-      // calculate new position of thumb, and move thumb to it
+      // calculate new position of thumb
       const posY = normalizeValue(
         currentPosY + clientY - thumbHeight / 2,
         0,
         contentRef.current.clientHeight - thumbHeight
       )
-      moveThumbAt(posY)
 
       // scroll to new thumb position
       const scrollToPosY =
@@ -126,6 +105,11 @@ const Scrollbar: FC<IScrollbarProps> = ({ children, ...divProps }) => {
   }
 
   // add mouseUp event listener to remove mouseMove event listener for thumb
+  const mouseUpEventListener = useCallback(() => {
+    document.removeEventListener('mousemove', mouseMoveEventListener)
+    document.body.style.userSelect = 'auto'
+  }, [mouseMoveEventListener])
+
   useEffect(() => {
     document.addEventListener('mouseup', mouseUpEventListener)
 
@@ -152,9 +136,8 @@ const Scrollbar: FC<IScrollbarProps> = ({ children, ...divProps }) => {
       >
         <div
           className={s.thumb}
-          ref={thumbRef}
           onMouseDown={onMouseDownThumb}
-          onDragStart={() => false}
+          style={{ height: `${thumbHeight}px`, top: `${thumbTop}px` }}
         />
       </div>
     </div>
