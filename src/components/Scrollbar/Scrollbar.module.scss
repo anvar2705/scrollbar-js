@@ -1,0 +1,50 @@
+.root {
+  width: 100%;
+  position: relative;
+  height: 100%;
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none; /* IE и Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.content {
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  overflow-y: scroll;
+  overflow-x: hidden;
+
+  box-sizing: border-box;
+  padding-right: 8px;
+}
+.track {
+  width: 8px;
+  height: 100%;
+  background-color: #ccc;
+  position: absolute;
+  top: 0;
+  right: 0;
+  cursor: pointer;
+  border-radius: 100vw;
+}
+.thumb {
+  width: 4px;
+  background-color: #999;
+  border-radius: 100vw;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+
+  &:hover {
+    background-color: #777;
+    width: 8px;
+  }
+  &:active {
+    background-color: #555;
+    width: 8px;
+  }
+}
