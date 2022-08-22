@@ -9,20 +9,24 @@ const Scrollbar: FC<IScrollbarProps> = ({ children, ...divProps }) => {
   const trackRef = useRef<HTMLDivElement>(null)
   const [thumbTop, setThumbTop] = useState(0)
   const [thumbHeight, setThumbHeight] = useState(0)
+  const [isScrollVisible, setIsScrollVisible] = useState(true)
 
   // set thumb height
   useEffect(() => {
     const contentClientHeight = contentRef.current?.clientHeight
     const contentScrollHeight = contentRef.current?.scrollHeight
     const trackHeight = trackRef.current?.clientHeight
-    if (contentClientHeight && contentScrollHeight && trackHeight) {
+
+    if (contentClientHeight === contentScrollHeight) {
+      setIsScrollVisible(false)
+    } else if (contentClientHeight && contentScrollHeight && trackHeight) {
       const thumbHeightCalculated = (contentClientHeight / contentScrollHeight) * trackHeight
       if (thumbRef.current) {
         thumbRef.current.style.height = `${thumbHeightCalculated}px`
         setThumbHeight(thumbHeightCalculated)
       }
     }
-  }, [contentRef])
+  }, [contentRef, trackRef])
 
   // move function
   const moveThumbAt = useCallback((posY: number) => {
@@ -132,10 +136,20 @@ const Scrollbar: FC<IScrollbarProps> = ({ children, ...divProps }) => {
 
   return (
     <div {...divProps} className={s.root}>
-      <div ref={contentRef} onScroll={onScrollContent} className={s.content}>
+      <div
+        ref={contentRef}
+        onScroll={onScrollContent}
+        className={s.content}
+        style={{ paddingRight: isScrollVisible ? '8px' : 0 }}
+      >
         {children}
       </div>
-      <div className={s.track} ref={trackRef} onMouseDown={onMouseDownTrack}>
+      <div
+        className={s.track}
+        ref={trackRef}
+        onMouseDown={onMouseDownTrack}
+        style={{ display: isScrollVisible ? 'block' : 'none' }}
+      >
         <div
           className={s.thumb}
           ref={thumbRef}
