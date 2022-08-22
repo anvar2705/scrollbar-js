@@ -130,7 +130,7 @@ const Scrollbar: FC<IScrollbarProps> = (props) => {
         ref={contentRef}
         onScroll={onScrollContent}
         className={s.content}
-        style={{ paddingRight: isScrollVisible ? '8px' : 0 }}
+        style={{ paddingRight: isScrollVisible ? '6px' : 0 }}
       >
         {children}
       </div>

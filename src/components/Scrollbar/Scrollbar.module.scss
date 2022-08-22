@@ -21,7 +21,7 @@
   box-sizing: border-box;
 }
 .track {
-  width: 8px;
+  width: 6px;
   height: 100%;
   background-color: transparent;
   position: absolute;
@@ -29,6 +29,8 @@
   right: 0;
   cursor: pointer;
   border-radius: 100vw;
+  border: 1px solid transparent;
+  box-sizing: border-box;
 }
 .thumb {
   width: 4px;
