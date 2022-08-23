@@ -7,11 +7,11 @@ const Scrollbar: FC<IScrollbarProps> = (props) => {
   const { children, ...divProps } = props
   const contentRef = useRef<HTMLDivElement>(null)
   const trackRef = useRef<HTMLDivElement>(null)
+  const thumbClickY = useRef(0)
   const [thumbTop, setThumbTop] = useState(0)
   const [thumbHeight, setThumbHeight] = useState(0)
   const [isScrollVisible, setIsScrollVisible] = useState(true)
 
-  // set thumb height
   useEffect(() => {
     const contentClientHeight = contentRef.current?.clientHeight
     const contentScrollHeight = contentRef.current?.scrollHeight
@@ -21,24 +21,30 @@ const Scrollbar: FC<IScrollbarProps> = (props) => {
       setIsScrollVisible(false)
     } else if (contentClientHeight && contentScrollHeight && trackHeight) {
       const thumbHeightCalculated = (contentClientHeight / contentScrollHeight) * trackHeight
-      setThumbHeight(thumbHeightCalculated)
+      setThumbHeight(normalizeValue(thumbHeightCalculated, 50, 10000))
     }
-  }, [contentRef, trackRef])
+  }, [])
 
-  // mouseMove event listener
+  const onScrollContent = useCallback(() => {
+    if (contentRef.current && trackRef.current) {
+      const thumbTopOffset =
+        (contentRef.current.scrollTop / contentRef.current.scrollHeight) *
+        trackRef.current.clientHeight
+      setThumbTop(thumbTopOffset)
+    }
+  }, [])
+
   const mouseMoveEventListener = useCallback(
     (event: MouseEvent) => {
       if (trackRef.current && contentRef.current) {
         const { top: trackTop, left: trackLeft } = trackRef.current.getBoundingClientRect()
 
-        const posY = event.clientY - (trackTop + thumbHeight / 2)
+        const posY = event.clientY - trackTop - thumbClickY.current
         const normalizedPosY = normalizeValue(posY, 0, trackRef.current.clientHeight - thumbHeight)
 
         if (Math.abs(trackLeft - event.clientX) < 160) {
           const scrollToPosY =
-            ((normalizedPosY + thumbHeight / 2) / trackRef.current.clientHeight) *
-              contentRef.current.scrollHeight -
-            contentRef.current.clientHeight / 2
+            (normalizedPosY / trackRef.current.clientHeight) * contentRef.current.scrollHeight
 
           contentRef.current.scrollTo(0, scrollToPosY)
         } else {
@@ -46,71 +52,30 @@ const Scrollbar: FC<IScrollbarProps> = (props) => {
         }
       }
     },
-    [trackRef, thumbHeight]
+    [thumbHeight]
   )
 
-  // move scroll thumb by onScroll event
-  const onScrollContent = () => {
-    if (contentRef.current && trackRef.current) {
-      const thumbTopOffset =
-        (contentRef.current.scrollTop / contentRef.current.scrollHeight) *
-        trackRef.current.clientHeight
-      setThumbTop(thumbTopOffset)
-    }
-  }
-
-  // mouseDown track event - scroll content if click to track
-  const onMouseDownTrack = (event: React.MouseEvent<HTMLDivElement>) => {
+  const onMouseDownTrack = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     const clickY = event.clientY - event.currentTarget.getBoundingClientRect().top
     if (contentRef.current) {
       const scrollToY =
-        (clickY / event.currentTarget.offsetHeight) * contentRef.current.scrollHeight -
+        (clickY / event.currentTarget.clientHeight) * contentRef.current.scrollHeight -
         contentRef.current.clientHeight / 2
       contentRef.current.scrollTo(0, scrollToY)
     }
-  }
+  }, [])
 
-  // mouseDown thumb event
-  const onMouseDownThumb = (event: React.MouseEvent<HTMLDivElement>) => {
-    // stop propagation to track & disable selection for body
-    event.stopPropagation()
-    document.body.style.userSelect = 'none'
+  const onMouseDownThumb = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      event.stopPropagation()
+      document.body.style.userSelect = 'none'
+      const clickY = event.clientY - event.currentTarget.getBoundingClientRect().top
+      thumbClickY.current = clickY
+      document.addEventListener('mousemove', mouseMoveEventListener)
+    },
+    [mouseMoveEventListener]
+  )
 
-    // get y coordinate relative to thumb
-    const clientY = event.clientY - event.currentTarget.getBoundingClientRect().top
-
-    // move center of scroll thumb to mouse
-    if (trackRef.current && contentRef.current) {
-      // get top border width for scroll track
-      const trackBorderTopWidth = getComputedStyle(trackRef.current).borderTopWidth
-      const trackBorderTopWidthValue = Number(
-        trackBorderTopWidth.slice(0, trackBorderTopWidth.indexOf('px'))
-      )
-
-      // current position of thumb relative to top of track without border
-      const currentPosY =
-        event.currentTarget.getBoundingClientRect().top -
-        (trackRef.current.getBoundingClientRect().top + trackBorderTopWidthValue)
-
-      // calculate new position of thumb
-      const posY = normalizeValue(
-        currentPosY + clientY - thumbHeight / 2,
-        0,
-        contentRef.current.clientHeight - thumbHeight
-      )
-
-      // scroll to new thumb position
-      const scrollToPosY =
-        ((posY + thumbHeight / 2) / trackRef.current.clientHeight) *
-          contentRef.current.scrollHeight -
-        contentRef.current.clientHeight / 2
-      contentRef.current.scrollTo(0, scrollToPosY)
-    }
-
-    document.addEventListener('mousemove', mouseMoveEventListener)
-  }
-
-  // add mouseUp event listener to remove mouseMove event listener for thumb
   const mouseUpEventListener = useCallback(() => {
     document.removeEventListener('mousemove', mouseMoveEventListener)
     document.body.style.userSelect = 'auto'
@@ -118,7 +83,6 @@ const Scrollbar: FC<IScrollbarProps> = (props) => {
 
   useEffect(() => {
     document.addEventListener('mouseup', mouseUpEventListener)
-
     return () => {
       document.removeEventListener('mouseup', mouseUpEventListener)
     }
