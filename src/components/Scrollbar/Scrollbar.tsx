@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useRef, useState, useCallback } from 'react'
+import React, { FC, useCallback, useEffect, useRef, useState } from 'react'
 import { normalizeValue } from './Scrollbar.utils'
 import { IScrollbarProps } from './Scrollbar.types'
 import s from './Scrollbar.module.scss'
@@ -13,15 +13,17 @@ const Scrollbar: FC<IScrollbarProps> = (props) => {
   const [isScrollVisible, setIsScrollVisible] = useState(true)
 
   useEffect(() => {
-    const contentClientHeight = contentRef.current?.clientHeight
-    const contentScrollHeight = contentRef.current?.scrollHeight
-    const trackHeight = trackRef.current?.clientHeight
+    if (contentRef.current && trackRef.current) {
+      const { clientHeight: contentClientHeight, scrollHeight: contentScrollHeight } =
+        contentRef.current
+      const trackHeight = trackRef.current.clientHeight
 
-    if (contentClientHeight === contentScrollHeight) {
-      setIsScrollVisible(false)
-    } else if (contentClientHeight && contentScrollHeight && trackHeight) {
-      const thumbHeightCalculated = (contentClientHeight / contentScrollHeight) * trackHeight
-      setThumbHeight(normalizeValue(thumbHeightCalculated, 50, 10000))
+      if (contentClientHeight === contentScrollHeight) {
+        setIsScrollVisible(false)
+      } else {
+        const thumbHeightCalculated = (contentClientHeight / contentScrollHeight) * trackHeight
+        setThumbHeight(normalizeValue(thumbHeightCalculated, 50, 10000))
+      }
     }
   }, [])
 
@@ -69,8 +71,7 @@ const Scrollbar: FC<IScrollbarProps> = (props) => {
     (event: React.MouseEvent<HTMLDivElement>) => {
       event.stopPropagation()
       document.body.style.userSelect = 'none'
-      const clickY = event.clientY - event.currentTarget.getBoundingClientRect().top
-      thumbClickY.current = clickY
+      thumbClickY.current = event.clientY - event.currentTarget.getBoundingClientRect().top
       document.addEventListener('mousemove', mouseMoveEventListener)
     },
     [mouseMoveEventListener]

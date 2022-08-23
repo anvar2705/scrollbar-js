@@ -2,7 +2,7 @@ import React from 'react'
 import s from './App.module.scss'
 import Scrollbar from 'components/Scrollbar/Scrollbar'
 
-const MOCK = new Array(10)
+const MOCK = new Array(100)
   .fill(`Ullamcorper morbi tincidunt ornare massa eget egestas purus viverra. Ac turpis egestas
           maecenas pharetra convallis posuere morbi. Sit amet venenatis urna cursus eget. Enim
           tortor at auctor urna nunc id cursus. In egestas erat imperdiet sed. Tellus at urna
