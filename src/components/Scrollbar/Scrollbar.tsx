@@ -10,6 +10,7 @@ const Scrollbar: FC<IScrollbarProps> = (props) => {
   const thumbClickY = useRef(0)
   const [thumbTop, setThumbTop] = useState(0)
   const [thumbHeight, setThumbHeight] = useState(0)
+  const [thumbHeightCalculated, setThumbHeightCalculated] = useState(0)
   const [isScrollVisible, setIsScrollVisible] = useState(true)
 
   useEffect(() => {
@@ -22,31 +23,42 @@ const Scrollbar: FC<IScrollbarProps> = (props) => {
         setIsScrollVisible(false)
       } else {
         const thumbHeightCalculated = (contentClientHeight / contentScrollHeight) * trackHeight
-        setThumbHeight(normalizeValue(thumbHeightCalculated, 50, 10000))
+        setThumbHeightCalculated(thumbHeightCalculated)
+        setThumbHeight(normalizeValue(thumbHeightCalculated, 20, 10000))
       }
     }
   }, [])
 
   const onScrollContent = useCallback(() => {
     if (contentRef.current && trackRef.current) {
+      const {
+        scrollTop: contentScrollTop,
+        scrollHeight: contentScrollHeight,
+        clientHeight: contentHeight,
+      } = contentRef.current
+      const { clientHeight: trackHeight } = trackRef.current
+
       const thumbTopOffset =
-        (contentRef.current.scrollTop / contentRef.current.scrollHeight) *
-        trackRef.current.clientHeight
+        (contentScrollTop / (contentScrollHeight - contentHeight)) * (trackHeight - thumbHeight)
       setThumbTop(thumbTopOffset)
     }
-  }, [])
+  }, [thumbHeight])
 
   const mouseMoveEventListener = useCallback(
     (event: MouseEvent) => {
       if (trackRef.current && contentRef.current) {
         const { top: trackTop, left: trackLeft } = trackRef.current.getBoundingClientRect()
+        const { clientHeight: trackHeight } = trackRef.current
+        const { scrollHeight: contentScrollHeight, clientHeight: contentClientHeight } =
+          contentRef.current
 
         const posY = event.clientY - trackTop - thumbClickY.current
-        const normalizedPosY = normalizeValue(posY, 0, trackRef.current.clientHeight - thumbHeight)
+        const normalizedPosY = normalizeValue(posY, 0, trackHeight - thumbHeightCalculated)
 
         if (Math.abs(trackLeft - event.clientX) < 160) {
           const scrollToPosY =
-            (normalizedPosY / trackRef.current.clientHeight) * contentRef.current.scrollHeight
+            (normalizedPosY / (trackHeight - thumbHeight)) *
+            (contentScrollHeight - contentClientHeight)
 
           contentRef.current.scrollTo(0, scrollToPosY)
         } else {
@@ -54,18 +66,25 @@ const Scrollbar: FC<IScrollbarProps> = (props) => {
         }
       }
     },
-    [thumbHeight]
+    [thumbHeight, thumbHeightCalculated]
   )
 
-  const onMouseDownTrack = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
-    const clickY = event.clientY - event.currentTarget.getBoundingClientRect().top
-    if (contentRef.current) {
-      const scrollToY =
-        (clickY / event.currentTarget.clientHeight) * contentRef.current.scrollHeight -
-        contentRef.current.clientHeight / 2
-      contentRef.current.scrollTo(0, scrollToY)
-    }
-  }, [])
+  const onMouseDownTrack = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      if (contentRef.current) {
+        const { top: trackY } = event.currentTarget.getBoundingClientRect()
+        const { scrollHeight: contentScrollHeight, clientHeight: contentClientHeight } =
+          contentRef.current
+        const clickY = event.clientY - trackY - thumbHeight / 2
+        const scrollToY =
+          (clickY / (event.currentTarget.clientHeight - thumbHeight)) * contentScrollHeight -
+          contentClientHeight / 2
+
+        contentRef.current.scrollTo(0, scrollToY)
+      }
+    },
+    [thumbHeight]
+  )
 
   const onMouseDownThumb = useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {

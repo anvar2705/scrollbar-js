@@ -2,7 +2,8 @@ import React from 'react'
 import s from './App.module.scss'
 import Scrollbar from 'components/Scrollbar/Scrollbar'
 
-const MOCK = new Array(100)
+// change arrayLength to check scrollbar working with different content heights
+const MOCK = new Array(1000)
   .fill(`Ullamcorper morbi tincidunt ornare massa eget egestas purus viverra. Ac turpis egestas
           maecenas pharetra convallis posuere morbi. Sit amet venenatis urna cursus eget. Enim
           tortor at auctor urna nunc id cursus. In egestas erat imperdiet sed. Tellus at urna
@@ -10,7 +11,7 @@ const MOCK = new Array(100)
           non curabitur.`)
 
 const Content = () => (
-  <div style={{ padding: '0 18px', backgroundColor: '#eee' }}>
+  <div style={{ padding: '0 18px', backgroundColor: '#eee', border: '10px solid #ccc' }}>
     <span style={{ fontWeight: 900 }}>BEGIN</span>
     {MOCK.map((item) => item)}
     <span style={{ fontWeight: 900 }}>END</span>
